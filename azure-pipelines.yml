@@ -1,13 +1,10 @@
 # .NET Desktop
-# Build and run tests for .NET Desktop or Windows classic desktop solutions.
-# Add steps that publish symbols, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
 - master
 
 pool:
-  vmImage: 'windows-latest'
+  name: COMP367-windows
 
 variables:
   solution: '**/*.sln'
@@ -31,3 +28,27 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+- task: NuGetCommand@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/*.csproj'
+    versioningScheme: 'byPrereleaseNumber'
+    majorVersion: '1'
+    minorVersion: '0'
+    patchVersion: '0'
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    publishVstsFeed: '993e9694-dc9c-4a99-823c-e21af2f1addc/423652e9-66cd-4bbc-ba27-8f3a862a4c30'
+    allowPackageConflicts: true
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'StringLibrary'
+    publishLocation: 'Container'
+# Build and run tests for .NET Desktop or Windows classic desktop solutions.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
